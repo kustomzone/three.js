@@ -1,43 +1,47 @@
+import { Curve } from '../core/Curve';
+import { Vector2 } from '../../math/Vector2';
+import { CurveUtils } from '../CurveUtils';
+import { ShapeUtils } from '../ShapeUtils';
+
 /**************************************************************
  *	Quadratic Bezier curve
  **************************************************************/
 
 
-THREE.QuadraticBezierCurve = function ( v0, v1, v2 ) {
+function QuadraticBezierCurve( v0, v1, v2 ) {
 
 	this.v0 = v0;
 	this.v1 = v1;
 	this.v2 = v2;
 
-};
+}
 
-THREE.QuadraticBezierCurve.prototype = Object.create( THREE.Curve.prototype );
-
-
-THREE.QuadraticBezierCurve.prototype.getPoint = function ( t ) {
-
-	var tx, ty;
-
-	tx = THREE.Shape.Utils.b2( t, this.v0.x, this.v1.x, this.v2.x );
-	ty = THREE.Shape.Utils.b2( t, this.v0.y, this.v1.y, this.v2.y );
-
-	return new THREE.Vector2( tx, ty );
-
-};
+QuadraticBezierCurve.prototype = Object.create( Curve.prototype );
+QuadraticBezierCurve.prototype.constructor = QuadraticBezierCurve;
 
 
-THREE.QuadraticBezierCurve.prototype.getTangent = function( t ) {
+QuadraticBezierCurve.prototype.getPoint = function ( t ) {
 
-	var tx, ty;
+	var b2 = ShapeUtils.b2;
 
-	tx = THREE.Curve.Utils.tangentQuadraticBezier( t, this.v0.x, this.v1.x, this.v2.x );
-	ty = THREE.Curve.Utils.tangentQuadraticBezier( t, this.v0.y, this.v1.y, this.v2.y );
-
-	// returns unit vector
-
-	var tangent = new THREE.Vector2( tx, ty );
-	tangent.normalize();
-
-	return tangent;
+	return new Vector2(
+		b2( t, this.v0.x, this.v1.x, this.v2.x ),
+		b2( t, this.v0.y, this.v1.y, this.v2.y )
+	);
 
 };
+
+
+QuadraticBezierCurve.prototype.getTangent = function( t ) {
+
+	var tangentQuadraticBezier = CurveUtils.tangentQuadraticBezier;
+
+	return new Vector2(
+		tangentQuadraticBezier( t, this.v0.x, this.v1.x, this.v2.x ),
+		tangentQuadraticBezier( t, this.v0.y, this.v1.y, this.v2.y )
+	).normalize();
+
+};
+
+
+export { QuadraticBezierCurve };

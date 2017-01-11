@@ -8,13 +8,14 @@
  * @author alteredq / http://alteredqualia.com/
  */
 
-THREE.CTMLoader = function ( showStatus ) {
+THREE.CTMLoader = function () {
 
-	THREE.Loader.call( this, showStatus );
+	THREE.Loader.call( this );
 
 };
 
 THREE.CTMLoader.prototype = Object.create( THREE.Loader.prototype );
+THREE.CTMLoader.prototype.constructor = THREE.CTMLoader;
 
 // Load multiple CTM parts defined in JSON
 
@@ -64,14 +65,14 @@ THREE.CTMLoader.prototype.loadParts = function( url, callback, parameters ) {
 				// load joined CTM file
 
 				var partUrl = basePath + jsonObject.data;
-				var parametersPart = { useWorker: parameters.useWorker, offsets: jsonObject.offsets };
+				var parametersPart = { useWorker: parameters.useWorker, worker:parameters.worker, offsets: jsonObject.offsets };
 				scope.load( partUrl, callbackFinal, parametersPart );
 
 			}
 
 		}
 
-	}
+	};
 
 	xhr.open( "GET", url, true );
 	xhr.setRequestHeader( "Content-Type", "text/plain" );
@@ -109,7 +110,7 @@ THREE.CTMLoader.prototype.load = function( url, callback, parameters ) {
 
 				if ( parameters.useWorker ) {
 
-					var worker = new Worker( "js/loaders/ctm/CTMWorker.js" );
+					var worker = parameters.worker || new Worker( "js/loaders/ctm/CTMWorker.js" );
 
 					worker.onmessage = function( event ) {
 
@@ -125,7 +126,7 @@ THREE.CTMLoader.prototype.load = function( url, callback, parameters ) {
 							scope.createModel( ctmFile, callback );
 
 							var e = Date.now();
-							console.log( "model load time [worker]: " + (e-e1) + " ms, total: " + (e-s));
+							console.log( "model load time [worker]: " + (e - e1) + " ms, total: " + (e - s));
 
 						}
 
@@ -178,7 +179,7 @@ THREE.CTMLoader.prototype.load = function( url, callback, parameters ) {
 
 		}
 
-	}
+	};
 
 	xhr.open( "GET", url, true );
 	xhr.responseType = "arraybuffer";
@@ -218,7 +219,7 @@ THREE.CTMLoader.prototype.createModel = function ( file, callback ) {
 
 		}
 
-		this.addAttribute( 'index', new THREE.BufferAttribute( indices, 1 ) );
+		this.setIndex( new THREE.BufferAttribute( indices, 1 ) );
 		this.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 
 		if ( normals !== undefined ) {
@@ -239,16 +240,15 @@ THREE.CTMLoader.prototype.createModel = function ( file, callback ) {
 
 		}
 
-	}
+	};
 
 	Model.prototype = Object.create( THREE.BufferGeometry.prototype );
+	Model.prototype.constructor = Model;
 
 	var geometry = new Model();
 
-	geometry.computeOffsets();
-
 	// compute vertex normals if not present in the CTM model
-	if ( geometry.attributes[ "normal" ] === undefined ) {
+	if ( geometry.attributes.normal === undefined ) {
 		geometry.computeVertexNormals();
 	}
 

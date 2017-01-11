@@ -1,75 +1,65 @@
+import { Vector3 } from '../math/Vector3';
+import { Object3D } from '../core/Object3D';
+import { SpriteMaterial } from '../materials/SpriteMaterial';
+
 /**
  * @author mikael emtinger / http://gomo.se/
  * @author alteredq / http://alteredqualia.com/
  */
 
-THREE.Sprite = ( function () {
+function Sprite( material ) {
 
-	var vertices = new Float32Array( [ - 0.5, - 0.5, 0, 0.5, - 0.5, 0, 0.5, 0.5, 0 ] );
+	Object3D.call( this );
 
-	var geometry = new THREE.BufferGeometry();
-	geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+	this.type = 'Sprite';
 
-	return function ( material ) {
+	this.material = ( material !== undefined ) ? material : new SpriteMaterial();
 
-		THREE.Object3D.call( this );
+}
 
-		this.geometry = geometry;
-		this.material = ( material !== undefined ) ? material : new THREE.SpriteMaterial();
+Sprite.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
-	};
+	constructor: Sprite,
 
-} )();
+	isSprite: true,
 
-THREE.Sprite.prototype = Object.create( THREE.Object3D.prototype );
+	raycast: ( function () {
 
-THREE.Sprite.prototype.raycast = ( function () {
+		var matrixPosition = new Vector3();
 
-	var matrixPosition = new THREE.Vector3();
+		return function raycast( raycaster, intersects ) {
 
-	return function ( raycaster, intersects ) {
+			matrixPosition.setFromMatrixPosition( this.matrixWorld );
 
-		matrixPosition.setFromMatrixPosition( this.matrixWorld );
+			var distanceSq = raycaster.ray.distanceSqToPoint( matrixPosition );
+			var guessSizeSq = this.scale.x * this.scale.y / 4;
 
-		var distance = raycaster.ray.distanceToPoint( matrixPosition );
+			if ( distanceSq > guessSizeSq ) {
 
-		if ( distance > this.scale.x ) {
+				return;
 
-			return;
+			}
 
-		}
+			intersects.push( {
 
-		intersects.push( {
+				distance: Math.sqrt( distanceSq ),
+				point: this.position,
+				face: null,
+				object: this
 
-			distance: distance,
-			point: this.position,
-			face: null,
-			object: this
+			} );
 
-		} );
+		};
 
-	};
+	}() ),
 
-}() );
+	clone: function () {
 
-THREE.Sprite.prototype.updateMatrix = function () {
+		return new this.constructor( this.material ).copy( this );
 
-	this.matrix.compose( this.position, this.quaternion, this.scale );
+	}
 
-	this.matrixWorldNeedsUpdate = true;
+} );
 
-};
 
-THREE.Sprite.prototype.clone = function ( object ) {
-
-	if ( object === undefined ) object = new THREE.Sprite( this.material );
-
-	THREE.Object3D.prototype.clone.call( this, object );
-
-	return object;
-
-};
-
-// Backwards compatibility
-
-THREE.Particle = THREE.Sprite;
+export { Sprite };

@@ -1,11 +1,17 @@
-Sidebar.Geometry.Geometry = function ( signals ) {
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
 
-	var container = new UI.Panel();
+Sidebar.Geometry.Geometry = function ( editor ) {
+
+	var signals = editor.signals;
+
+	var container = new UI.Row();
 
 	// vertices
 
-	var verticesRow = new UI.Panel();
-	var vertices = new UI.Text().setColor( '#444' ).setFontSize( '12px' );
+	var verticesRow = new UI.Row();
+	var vertices = new UI.Text();
 
 	verticesRow.add( new UI.Text( 'Vertices' ).setWidth( '90px' ) );
 	verticesRow.add( vertices );
@@ -14,8 +20,8 @@ Sidebar.Geometry.Geometry = function ( signals ) {
 
 	// faces
 
-	var facesRow = new UI.Panel();
-	var faces = new UI.Text().setColor( '#444' ).setFontSize( '12px' );
+	var facesRow = new UI.Row();
+	var faces = new UI.Text();
 
 	facesRow.add( new UI.Text( 'Faces' ).setWidth( '90px' ) );
 	facesRow.add( faces );
@@ -24,18 +30,19 @@ Sidebar.Geometry.Geometry = function ( signals ) {
 
 	//
 
-	var update = function ( object ) {
+	function update( object ) {
 
-		if ( object === null ) return;
+		if ( object === null ) return; // objectSelected.dispatch( null )
+		if ( object === undefined ) return;
 
 		var geometry = object.geometry;
 
-		if ( geometry instanceof THREE.Geometry ) { 
+		if ( geometry instanceof THREE.Geometry ) {
 
 			container.setDisplay( 'block' );
 
-			vertices.setValue( geometry.vertices.length );
-			faces.setValue( geometry.faces.length );
+			vertices.setValue( ( geometry.vertices.length ).format() );
+			faces.setValue( ( geometry.faces.length ).format() );
 
 		} else {
 
@@ -43,11 +50,11 @@ Sidebar.Geometry.Geometry = function ( signals ) {
 
 		}
 
-	};
+	}
 
 	signals.objectSelected.add( update );
-	signals.objectChanged.add( update );
+	signals.geometryChanged.add( update );
 
 	return container;
 
-}
+};

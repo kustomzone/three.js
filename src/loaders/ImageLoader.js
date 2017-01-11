@@ -1,69 +1,60 @@
+import { FileLoader } from './FileLoader';
+import { DefaultLoadingManager } from './LoadingManager';
+
 /**
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.ImageLoader = function ( manager ) {
+function ImageLoader( manager ) {
 
-	this.cache = new THREE.Cache();
-	this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 
-};
+}
 
-THREE.ImageLoader.prototype = {
-
-	constructor: THREE.ImageLoader,
+Object.assign( ImageLoader.prototype, {
 
 	load: function ( url, onLoad, onProgress, onError ) {
 
 		var scope = this;
 
-		var cached = scope.cache.get( url );
+		var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
+		image.onload = function () {
 
-		if ( cached !== undefined ) {
+			image.onload = null;
 
-			onLoad( cached );
-			return;
+			URL.revokeObjectURL( image.src );
 
-		}
+			if ( onLoad ) onLoad( image );
 
-		var image = document.createElement( 'img' );
+			scope.manager.itemEnd( url );
 
-		if ( onLoad !== undefined ) {
+		};
+		image.onerror = onError;
 
-			image.addEventListener( 'load', function ( event ) {
+		if ( url.indexOf( 'data:' ) === 0 ) {
 
-				scope.cache.add( url, this );
+			image.src = url;
 
-				onLoad( this );
-				scope.manager.itemEnd( url );
+		} else if ( this.crossOrigin !== undefined ) {
 
-			}, false );
+			// crossOrigin doesn't work with URL.createObjectURL()?
 
-		}
+			image.crossOrigin = this.crossOrigin;
+			image.src = url;
 
-		if ( onProgress !== undefined ) {
+		} else {
 
-			image.addEventListener( 'progress', function ( event ) {
+			var loader = new FileLoader();
+			loader.setPath( this.path );
+			loader.setResponseType( 'blob' );
+			loader.setWithCredentials( this.withCredentials );
+			loader.load( url, function ( blob ) {
 
-				onProgress( event );
+				image.src = URL.createObjectURL( blob );
 
-			}, false );
-
-		}
-
-		if ( onError !== undefined ) {
-
-			image.addEventListener( 'error', function ( event ) {
-
-				onError( event );
-
-			}, false );
+			}, onProgress, onError );
 
 		}
-
-		if ( this.crossOrigin !== undefined ) image.crossOrigin = this.crossOrigin;
-
-		image.src = url;
 
 		scope.manager.itemStart( url );
 
@@ -74,7 +65,25 @@ THREE.ImageLoader.prototype = {
 	setCrossOrigin: function ( value ) {
 
 		this.crossOrigin = value;
+		return this;
+
+	},
+
+	setWithCredentials: function ( value ) {
+
+		this.withCredentials = value;
+		return this;
+
+	},
+
+	setPath: function ( value ) {
+
+		this.path = value;
+		return this;
 
 	}
 
-}
+} );
+
+
+export { ImageLoader };

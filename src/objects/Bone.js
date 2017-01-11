@@ -1,32 +1,26 @@
+import { Object3D } from '../core/Object3D';
+
 /**
  * @author mikael emtinger / http://gomo.se/
  * @author alteredq / http://alteredqualia.com/
  * @author ikerr / http://verold.com
  */
 
-THREE.Bone = function ( belongsToSkin ) {
+function Bone() {
 
-	THREE.Object3D.call( this );
+	Object3D.call( this );
 
-	this.skin = belongsToSkin;
+	this.type = 'Bone';
 
-	this.accumulatedRotWeight = 0;
-	this.accumulatedPosWeight = 0;
-	this.accumulatedSclWeight = 0;
+}
 
-};
+Bone.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
-THREE.Bone.prototype = Object.create( THREE.Object3D.prototype );
+	constructor: Bone,
 
-THREE.Bone.prototype.updateMatrixWorld = function ( force ) {
+	isBone: true
 
-	THREE.Object3D.prototype.updateMatrixWorld.call( this, force );
+} );
 
-	// Reset weights to be re-accumulated in the next frame
 
-	this.accumulatedRotWeight = 0;
-	this.accumulatedPosWeight = 0;
-	this.accumulatedSclWeight = 0;
-
-};
-
+export { Bone };
